@@ -38,7 +38,7 @@ class Indicator:
         self.tags = tags
 
     def __repr__(self):
-        return str(self.__class__) + ": " + str(self.__dict__)
+        return json.dumps(self.__dict__)
 
     def get_dimension_values(self, dimensions: List[str] = None) -> Dict[str, List[str]]:
         try:
@@ -67,7 +67,7 @@ class RawDataset:
         self.schema = schema
 
     def __repr__(self):
-        return str(self.__class__) + ": " + str(self.__dict__)
+        return json.dumps(self.__dict__)
 
 class Dataset:
     def __init__(self, data_source: str, source_id: str, name: str, id: int, query: str, schema: json):
@@ -79,7 +79,7 @@ class Dataset:
         self.schema = schema
 
     def __repr__(self):
-        return str(self.__class__) + ": " + str(self.__dict__)
+        return json.dumps(self.__dict__)
 
     def get_schema(self):
         return self.schema
