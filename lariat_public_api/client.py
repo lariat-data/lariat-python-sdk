@@ -97,7 +97,7 @@ class Field:
         self.name = name
 
     def __repr__(self):
-        return str(self.__class__) + ": " + str(self.__dict__)
+        return json.dumps(self.__dict__)
 
 class FilterClause:
     def __init__(self, field: str, operator: str, values: Union[str, List[str]]):
@@ -106,7 +106,7 @@ class FilterClause:
         self.values = values
 
     def __repr__(self):
-        return str(self.__class__) + ": " + str(self.__dict__)
+        return json.dumps(self.__dict__)
 
 
 class Filter:
@@ -115,7 +115,7 @@ class Filter:
         self.operator = operator
 
     def __repr__(self):
-        return str(self.__class__) + ": " + str(self.__dict__)
+        return json.dumps(self.__dict__)
 
 class MetricRecord:
     def __init__(self, evaluation_time: int, value: float, dimensions: Dict[str, str]):
@@ -124,7 +124,7 @@ class MetricRecord:
         self.dimensions = dimensions
 
     def __repr__(self):
-        return str(self.__class__) + ": " + str(self.__dict__)
+        return json.dumps(self.__dict__)
 
     def to_dict(self) -> Dict[str, str]:
         record_dict = {
@@ -142,7 +142,7 @@ class MetricRecordList:
         self.index = 0
 
     def __repr__(self):
-        return str(self.__class__) + ": " + str(self.__dict__)
+        return json.dumps(self.__dict__)
 
     def __iter__(self):
         return self
