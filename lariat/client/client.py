@@ -1,9 +1,11 @@
 import requests
+import csv
 import os
 import datetime
 import logging
 import json
 from flatten_json import flatten
+import pandas as pd
 from typing import List, Dict, Any, Union
 
 LARIAT_PUBLIC_API_ENDPOINT = "http://localhost:8002/public-api"
@@ -115,22 +117,23 @@ class MetricRecord:
 class MetricRecordList:
     def __init__(self, group_by_fields: List[str], records):
         self.group_by_fields = group_by_fields
-        self.records = records
+        self.records = [MetricRecord(**record) for record in records]
         self.index = 0
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        if self.index >= len(self.results):
+        if self.index >= len(self.records):
             raise StopIteration
         record = self.records[self.index]
         self.index += 1
-        return MetricRecord(**record)
+        return record
 
     def to_df(self):
-        return pd.DataFrame(self.records)
+        return pd.DataFrame.from_records([record.to_dict() for record in self.records])
 
+    
     def to_csv(self, filename, header=True):
         with open(filename, mode='w', newline='') as file:
             writer = csv.writer(file)
@@ -139,10 +142,9 @@ class MetricRecordList:
                 for field in self.group_by_fields:
                     output_array.append(field)
                 writer.writerow(output_array)
-            for record in self:
-                yield tuple(item for item in output_array)
-                writer.writerow([record[field] for field in output_array])
-                yield record
+            for record in self.records:
+                vals = record.to_dict()
+                writer.writerow([vals[field] for field in output_array])
 
         
 
@@ -228,7 +230,8 @@ def query(
     output_format: str = 'json'
     ):
     data_filter = {
-        'operator': 'or'
+        'operator': 'or',
+        'filters': []
     }
     if group_by:
         data_filter['group_by_clauses'] = group_by
@@ -246,16 +249,17 @@ def query(
         "indicator_id": indicator.id,
         "filter": data_filter,
         "time_range": {
-            "from_ts": from_ts.timestamp(),
-            "to_ts": to_ts.timestamp()
+            "from_ts": int(from_ts.timestamp() * 1000),
+            "to_ts": int(to_ts.timestamp() * 1000)
         },
-        "aggregation": aggregate
     }
+    if aggregate:
+        data['aggregation'] = aggregate
 
     print(data)
 
 
-    r = s.get(f'{LARIAT_PUBLIC_API_ENDPOINT}/query-metrics', data=data)
+    r = s.get(f'{LARIAT_PUBLIC_API_ENDPOINT}/query-metrics', data=json.dumps(data))
     print(r.json())
 
     records = r.json()['records']
