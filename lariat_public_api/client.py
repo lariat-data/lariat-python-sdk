@@ -37,6 +37,9 @@ class Indicator:
         self.dimensions = dimensions
         self.tags = tags
 
+    def __repr__(self):
+        return str(self.__class__) + ": " + str(self.__dict__)
+
     def get_dimension_values(self, dimensions: List[str] = None) -> Dict[str, List[str]]:
         try:
             r = s.get(f'{LARIAT_PUBLIC_API_ENDPOINT}/indicators/{self.id}/dimensions',
@@ -63,6 +66,9 @@ class RawDataset:
         self.name = name
         self.schema = schema
 
+    def __repr__(self):
+        return str(self.__class__) + ": " + str(self.__dict__)
+
 class Dataset:
     def __init__(self, data_source: str, source_id: str, name: str, id: int, query: str, schema: json):
         self.data_source = data_source
@@ -71,6 +77,9 @@ class Dataset:
         self.id = id
         self.query = query
         self.schema = schema
+
+    def __repr__(self):
+        return str(self.__class__) + ": " + str(self.__dict__)
 
     def get_schema(self):
         return self.schema
@@ -87,11 +96,17 @@ class Field:
         self.dataset_id = dataset_id
         self.name = name
 
+    def __repr__(self):
+        return str(self.__class__) + ": " + str(self.__dict__)
+
 class FilterClause:
     def __init__(self, field: str, operator: str, values: Union[str, List[str]]):
         self.field = field
         self.operator = operator
         self.values = values
+
+    def __repr__(self):
+        return str(self.__class__) + ": " + str(self.__dict__)
 
 
 class Filter:
@@ -99,11 +114,17 @@ class Filter:
         self.clauses = clauses
         self.operator = operator
 
+    def __repr__(self):
+        return str(self.__class__) + ": " + str(self.__dict__)
+
 class MetricRecord:
     def __init__(self, evaluation_time: int, value: float, dimensions: Dict[str, str]):
         self.evaluation_time = evaluation_time
         self.value = value
         self.dimensions = dimensions
+
+    def __repr__(self):
+        return str(self.__class__) + ": " + str(self.__dict__)
 
     def to_dict(self) -> Dict[str, str]:
         record_dict = {
@@ -120,6 +141,9 @@ class MetricRecordList:
         self.records = [MetricRecord(**record) for record in records]
         self.index = 0
 
+    def __repr__(self):
+        return str(self.__class__) + ": " + str(self.__dict__)
+
     def __iter__(self):
         return self
 
@@ -133,7 +157,6 @@ class MetricRecordList:
     def to_df(self):
         return pd.DataFrame.from_records([record.to_dict() for record in self.records])
 
-    
     def to_csv(self, filename, header=True):
         with open(filename, mode='w', newline='') as file:
             writer = csv.writer(file)
