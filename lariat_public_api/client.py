@@ -218,25 +218,39 @@ def get_indicators(datasets: List[Dataset] = [], tags: List[str] = [], fields: L
     if fields:
         params['fields'] = fields
     r = s.get(f'{LARIAT_PUBLIC_API_ENDPOINT}/indicators', params=params)
-    return [Indicator(
+    indicators = []
+    for obj in r.json()['indicators']:
+        query = f'SELECT {obj["calculation"]} AS value FROM {obj["computed_dataset_name"]}'
+        if obj['filters']:
+            query += f' WHERE {obj["filters"]}'
+        if obj["group_fields"]:
+            query += f' GROUP BY {obj["group_fields"]}'
+        indicators.append(Indicator(
             id=obj['indicator_id'],
             dataset_id=obj['computed_dataset_id'],
             dataset_name=obj['computed_dataset_name'],
-            query=obj['computed_dataset_query'],
+            query=query,
             aggregations=obj.get('aggregations', []),
             name=obj['name'],
             dimensions=obj['group_fields'],
-            tags=obj.get('tags', [])) for obj in r.json()['indicators']]
+            tags=obj.get('tags', [])
+        ))
+    return indicators
 
 def get_indicator(id: int) -> Indicator:
     params = {'indicator_id': id}
     r = s.get(f'{LARIAT_PUBLIC_API_ENDPOINT}/indicator', params=params)
     obj = r.json()['indicator']
+    query = f'SELECT {obj["calculation"]} AS value FROM {obj["computed_dataset_name"]}'
+    if obj['filters']:
+        query += f' WHERE {obj["filters"]}'
+    if obj["group_fields"]:
+        query += f' GROUP BY {obj["group_fields"]}'
     return Indicator(
             id=obj['indicator_id'],
             dataset_id=obj['computed_dataset_id'],
             dataset_name=obj['computed_dataset_name'],
-            query=obj['computed_dataset_query'],
+            query=query,
             aggregations=obj.get('aggregations', []),
             name=obj['name'],
             dimensions=obj['group_fields'],
