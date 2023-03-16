@@ -8,8 +8,7 @@ setup(
     description="This package contains common lariat python libraries",
     url="https://github.com/lariat-data/lariat-public-api/",
     packages=[
-        "lariat_public_api",
-        "lariat_public_api.client",
+        "client",
     ],
     install_requires=["flatten_json", "requests"],
 )
