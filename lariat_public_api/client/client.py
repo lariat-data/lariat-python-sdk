@@ -176,7 +176,7 @@ def get_dataset(source_id: str = None, name: str = None) -> Union[Dataset, None]
             schema=obj['schema']) for obj in r.json()['computed_datasets']][0]
     return None
 
-def get_datasets(name: str) -> List[Dataset]:
+def get_datasets(name: str = None) -> List[Dataset]:
     r = s.get(f'{LARIAT_PUBLIC_API_ENDPOINT}/datasets', params={'name': name})
     return [Dataset(
             data_source=obj['data_source'],
@@ -209,6 +209,7 @@ def get_indicator(id: int) -> Indicator:
     params = {'indicator_id': id}
     r = s.get(f'{LARIAT_PUBLIC_API_ENDPOINT}/indicator', params=params)
     obj = r.json()['indicator']
+    print(r.json())
     return Indicator(
             id=obj['indicator_id'],
             dataset_id=obj['computed_dataset_id'],
