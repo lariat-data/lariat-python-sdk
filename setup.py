@@ -9,7 +9,6 @@ setup(
     url="https://github.com/lariat-data/lariat-public-api/",
     packages=[
         "lariat_public_api",
-        "lariat_public_api.client",
     ],
     install_requires=["flatten_json", "requests", "pandas"],
 )
