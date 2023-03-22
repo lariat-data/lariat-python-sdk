@@ -69,7 +69,3 @@ results_df = results.to_df()
 # Save results to a CSV file
 results.to_csv("results.csv")
 ```
-
-## License
-
-This project is licensed under the MIT License.
