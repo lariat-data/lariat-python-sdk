@@ -36,6 +36,20 @@ def configure(api_key: str, application_key: str):
 
 logger = logging.getLogger(__name__)
 
+class Field:
+    """A class representing a dataset's field in Lariat.
+
+    Attributes:
+        dataset_id (int): the unique ID of a dataset.
+        name (str): The name of the field.
+    """
+    def __init__(self, dataset_id: int, name: str):
+        self.dataset_id = dataset_id
+        self.name = name
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
+
 class Indicator:
     """A class representing a Lariat indicator.
 
@@ -165,20 +179,6 @@ class Dataset:
             List[Indicator]: A list of the indicators that query this dataset.
         """
         return get_indicators(datasets=[self])
-
-class Field:
-    """A class representing a dataset's field in Lariat.
-
-    Attributes:
-        dataset_id (int): the unique ID of a dataset.
-        name (str): The name of the field.
-    """
-    def __init__(self, dataset_id: int, name: str):
-        self.dataset_id = dataset_id
-        self.name = name
-
-    def __repr__(self):
-        return json.dumps(self.__dict__)
 
 class FilterClause:
     """A class representing a clause to filter metrics by.
