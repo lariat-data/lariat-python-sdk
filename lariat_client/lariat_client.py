@@ -15,11 +15,16 @@ from typing import List, Dict, Any, Union
 
 LARIAT_PUBLIC_API_ENDPOINT = "http://localhost:8002/public-api"
 
+logger = logging.getLogger(__name__)
+
 s = requests.Session()
-s.headers.update({
-    'X-Lariat-Application-Key': os.environ.get('LARIAT_API_KEY'),
-    'X-Lariat-Api-Key': os.environ.get('LARIAT_APPLICATION_KEY'),
-})
+s.headers.update(
+    {
+        "X-Lariat-Application-Key": os.environ.get("LARIAT_API_KEY"),
+        "X-Lariat-Api-Key": os.environ.get("LARIAT_APPLICATION_KEY"),
+    }
+)
+
 
 def configure(api_key: str, application_key: str):
     """
@@ -29,12 +34,13 @@ def configure(api_key: str, application_key: str):
         api_key (str): The API key to use for authentication.
         application_key (str): The application key to use for authentication.
     """
-    s.headers.update({
-        'X-Lariat-Application-Key': application_key,
-        'X-Lariat-Api-Key': api_key,
-    })
+    s.headers.update(
+        {
+            "X-Lariat-Application-Key": application_key,
+            "X-Lariat-Api-Key": api_key,
+        }
+    )
 
-logger = logging.getLogger(__name__)
 
 class Field:
     """A class representing a dataset's field in Lariat.
@@ -43,12 +49,14 @@ class Field:
         dataset_id (int): the unique ID of a dataset.
         name (str): The name of the field.
     """
+
     def __init__(self, dataset_id: int, name: str):
         self.dataset_id = dataset_id
         self.name = name
 
     def __repr__(self):
         return json.dumps(self.__dict__)
+
 
 class Indicator:
     """A class representing a Lariat indicator.
@@ -63,7 +71,9 @@ class Indicator:
         dimensions (List[str]): The list of dimensions used to group the indicator.
         tags (List[str]): The list of tags associated with the indicator.
     """
-    def __init__(self,
+
+    def __init__(
+        self,
         id: int,
         dataset_id: int,
         dataset_name: str,
@@ -71,7 +81,8 @@ class Indicator:
         aggregations: List[str],
         name: str,
         dimensions: List[str],
-        tags: List[str]):
+        tags: List[str],
+    ):
         self.id = id
         self.dataset_id = dataset_id
         self.dataset_name = dataset_name
@@ -84,7 +95,9 @@ class Indicator:
     def __repr__(self):
         return json.dumps(self.__dict__)
 
-    def get_dimension_values(self, dimensions: List[str] = None) -> Dict[str, List[str]]:
+    def get_dimension_values(
+        self, dimensions: List[str] = None
+    ) -> Dict[str, List[str]]:
         """
         Fetches the unique values of the specified dimensions for the indicator.
 
@@ -95,14 +108,14 @@ class Indicator:
         Returns:
             Dict[str, List[str]]: A dictionary with dimension names as keys and lists of
                 unique values as values.
-        """ 
+        """
         try:
-            r = s.get(f'{LARIAT_PUBLIC_API_ENDPOINT}/indicators/{self.id}/dimensions',
-                      params={'dimensions': dimensions})
+            r = s.get(
+                f"{LARIAT_PUBLIC_API_ENDPOINT}/indicators/{self.id}/dimensions",
+                params={"dimensions": dimensions},
+            )
             r.raise_for_status()
-            return {
-                obj['key']: obj['values'] for obj in r.json()['filters']
-            }
+            return {obj["key"]: obj["values"] for obj in r.json()["filters"]}
         except requests.exceptions.HTTPError as errh:
             logging.error(f"Http Error: {errh}")
         except requests.exceptions.ConnectionError as errc:
@@ -123,6 +136,7 @@ class RawDataset:
         name (str): The name of the raw dataset.
         schema (Dict): The schema of the raw dataset.
     """
+
     def __init__(self, source_id: str, data_source: str, name: str, schema):
         self.source_id = source_id
         self.data_source = data_source
@@ -131,6 +145,7 @@ class RawDataset:
 
     def __repr__(self):
         return json.dumps(self.__dict__)
+
 
 class Dataset:
     """A class representing a dataset in Lariat.
@@ -141,7 +156,16 @@ class Dataset:
         name (str): The name of the raw dataset.
         schema (Dict): The schema of the raw dataset.
     """
-    def __init__(self, data_source: str, source_id: str, name: str, id: int, query: str, schema: json):
+
+    def __init__(
+        self,
+        data_source: str,
+        source_id: str,
+        name: str,
+        id: int,
+        query: str,
+        schema: json,
+    ):
         self.data_source = data_source
         self.source_id = source_id
         self.name = name
@@ -168,7 +192,7 @@ class Dataset:
         Returns:
             List[Field]: A list of the flattened schema fields of the dataset.
         """
-        flattened_keys = [flatten(d, '.') for d in [self.schema]][0].keys()
+        flattened_keys = [flatten(d, ".") for d in [self.schema]][0].keys()
         return [Field(dataset_id=self.id, name=field) for field in flattened_keys]
 
     def get_indicators(self) -> List[Indicator]:
@@ -180,6 +204,7 @@ class Dataset:
         """
         return get_indicators(datasets=[self])
 
+
 class FilterClause:
     """A class representing a clause to filter metrics by.
 
@@ -188,6 +213,7 @@ class FilterClause:
         operator (str): The operator to apply to the filter values. (in, eq, not_in, neq, etc.)
         values (list or str): A string or list of values to filter on.
     """
+
     def __init__(self, field: str, operator: str, values: Union[str, List[str]]):
         self.field = field
         self.operator = operator
@@ -204,12 +230,14 @@ class Filter:
         clauses (list): A list of filter clauses to apply when querying metrics.
         operator (str): The operator to apply to the filter clauses. (AND, OR, etc.)
     """
+
     def __init__(self, clauses: List[FilterClause], operator: str):
         self.clauses = clauses
         self.operator = operator
 
     def __repr__(self):
         return json.dumps(self.__dict__)
+
 
 class MetricRecord:
     """A class representing a record returned when querying metrics.
@@ -219,6 +247,7 @@ class MetricRecord:
         value (str): The value of the metric at this evaluation time.
         dimensions (dict): A dictionary mapping of a metric's dimensional names to values.
     """
+
     def __init__(self, evaluation_time: int, value: float, dimensions: Dict[str, str]):
         self.evaluation_time = evaluation_time
         self.value = value
@@ -235,13 +264,11 @@ class MetricRecord:
             Dict[str, str]: A dictionary holding the evalution time, value, and
                 dimensions of the metric record.
         """
-        record_dict = {
-            'evaluation_time': self.evaluation_time,
-            'value': self.value
-        }
+        record_dict = {"evaluation_time": self.evaluation_time, "value": self.value}
         for k, v in self.dimensions.items():
             record_dict[k] = v
         return record_dict
+
 
 class MetricRecordList:
     """A class representing a collection of metric records.
@@ -250,6 +277,7 @@ class MetricRecordList:
         group_by_fields (list): The epoch timestamp associated with the indicator's evaluation.
         records (list): A list of metric records returned by a query.
     """
+
     def __init__(self, group_by_fields: List[str], records):
         self.group_by_fields = group_by_fields
         self.records = [MetricRecord(**record) for record in records]
@@ -282,10 +310,10 @@ class MetricRecordList:
         """
         Writes the MetricRecord list to a csv.
         """
-        with open(filename, mode='w', newline='') as file:
+        with open(filename, mode="w", newline="") as file:
             writer = csv.writer(file)
             if header:
-                output_array = ['evaluation_time', 'value']
+                output_array = ["evaluation_time", "value"]
                 for field in self.group_by_fields:
                     output_array.append(field)
                 writer.writerow(output_array)
@@ -293,7 +321,7 @@ class MetricRecordList:
                 vals = record.to_dict()
                 writer.writerow([vals[field] for field in output_array])
 
-        
+
 def get_raw_datasets(dataset_ids: List[int]) -> List[RawDataset]:
     """
     Gets the raw datasets given a list of dataset ids.
@@ -306,14 +334,20 @@ def get_raw_datasets(dataset_ids: List[int]) -> List[RawDataset]:
             are created from.
     """
     try:
-        r = s.get(f'{LARIAT_PUBLIC_API_ENDPOINT}/raw-datasets',
-            params={'dataset_id': dataset_ids})
+        r = s.get(
+            f"{LARIAT_PUBLIC_API_ENDPOINT}/raw-datasets",
+            params={"dataset_id": dataset_ids},
+        )
         r.raise_for_status()
-        return [RawDataset(
-            source_id=obj['source_id'],
-            data_source=obj['data_source'],
-            name=obj['name'],
-            schema=obj['schema']) for obj in r.json()['raw_datasets']]
+        return [
+            RawDataset(
+                source_id=obj["source_id"],
+                data_source=obj["data_source"],
+                name=obj["name"],
+                schema=obj["schema"],
+            )
+            for obj in r.json()["raw_datasets"]
+        ]
     except requests.exceptions.HTTPError as errh:
         logging.error(f"Http Error: {errh}")
     except requests.exceptions.ConnectionError as errc:
@@ -323,6 +357,7 @@ def get_raw_datasets(dataset_ids: List[int]) -> List[RawDataset]:
     except requests.exceptions.RequestException as err:
         logging.error(f"Something went wrong: {err}")
         sys.exit(1)
+
 
 def get_dataset(name: str, source_id: str) -> Union[Dataset, None]:
     """
@@ -336,17 +371,23 @@ def get_dataset(name: str, source_id: str) -> Union[Dataset, None]:
         Union[Dataset,None]: A dataset corresponding to the given name and source.
     """
     try:
-        r = s.get(f'{LARIAT_PUBLIC_API_ENDPOINT}/datasets',
-            params={'source_id': source_id, 'name': name})
+        r = s.get(
+            f"{LARIAT_PUBLIC_API_ENDPOINT}/datasets",
+            params={"source_id": source_id, "name": name},
+        )
         r.raise_for_status()
         if r.json():
-            return [Dataset(
-                data_source=obj['data_source'],
-                source_id=obj['source_id'],
-                name=obj['dataset_name'],
-                id=obj['id'],
-                query=obj['query'],
-                schema=obj['schema']) for obj in r.json()['computed_datasets']][0]
+            return [
+                Dataset(
+                    data_source=obj["data_source"],
+                    source_id=obj["source_id"],
+                    name=obj["dataset_name"],
+                    id=obj["id"],
+                    query=obj["query"],
+                    schema=obj["schema"],
+                )
+                for obj in r.json()["computed_datasets"]
+            ][0]
         return None
     except requests.exceptions.HTTPError as errh:
         logging.error(f"Http Error: {errh}")
@@ -357,6 +398,7 @@ def get_dataset(name: str, source_id: str) -> Union[Dataset, None]:
     except requests.exceptions.RequestException as err:
         logging.error(f"Something went wrong: {err}")
         sys.exit(1)
+
 
 def get_datasets(name: str = None) -> List[Dataset]:
     """
@@ -369,15 +411,19 @@ def get_datasets(name: str = None) -> List[Dataset]:
         List[Dataset]: A list of datasets belonging to the user.
     """
     try:
-        r = s.get(f'{LARIAT_PUBLIC_API_ENDPOINT}/datasets', params={'name': name})
+        r = s.get(f"{LARIAT_PUBLIC_API_ENDPOINT}/datasets", params={"name": name})
         r.raise_for_status()
-        return [Dataset(
-                data_source=obj['data_source'],
-                source_id=obj['source_id'],
-                name=obj['dataset_name'],
-                id=obj['id'],
-                query=obj['query'],
-                schema=obj['schema']) for obj in r.json()['computed_datasets']]
+        return [
+            Dataset(
+                data_source=obj["data_source"],
+                source_id=obj["source_id"],
+                name=obj["dataset_name"],
+                id=obj["id"],
+                query=obj["query"],
+                schema=obj["schema"],
+            )
+            for obj in r.json()["computed_datasets"]
+        ]
     except requests.exceptions.HTTPError as errh:
         logging.error(f"Http Error: {errh}")
     except requests.exceptions.ConnectionError as errc:
@@ -388,7 +434,10 @@ def get_datasets(name: str = None) -> List[Dataset]:
         logging.error(f"Something went wrong: {err}")
         sys.exit(1)
 
-def get_indicators(datasets: List[Dataset] = [], tags: List[str] = [], fields: List[Field] = []) -> List[Indicator]:
+
+def get_indicators(
+    datasets: List[Dataset] = [], tags: List[str] = [], fields: List[Field] = []
+) -> List[Indicator]:
     """
     Gets the indicators corresponding to optional filters.
 
@@ -402,31 +451,33 @@ def get_indicators(datasets: List[Dataset] = [], tags: List[str] = [], fields: L
     """
     params = {}
     if datasets:
-        params['dataset_id'] = [dataset.id for dataset in datasets]
+        params["dataset_id"] = [dataset.id for dataset in datasets]
     if tags:
-        params['tags'] = tags
+        params["tags"] = tags
     if fields:
-        params['fields'] = fields
+        params["fields"] = fields
     try:
-        r = s.get(f'{LARIAT_PUBLIC_API_ENDPOINT}/indicators', params=params)
+        r = s.get(f"{LARIAT_PUBLIC_API_ENDPOINT}/indicators", params=params)
         r.raise_for_status()
         indicators = []
-        for obj in r.json()['indicators']:
+        for obj in r.json()["indicators"]:
             query = f'SELECT {obj["calculation"]} AS value FROM {obj["computed_dataset_name"]}'
-            if obj['filters']:
+            if obj["filters"]:
                 query += f' WHERE {obj["filters"]}'
             if obj["group_fields"]:
                 query += f' GROUP BY {obj["group_fields"]}'
-            indicators.append(Indicator(
-                id=obj['indicator_id'],
-                dataset_id=obj['computed_dataset_id'],
-                dataset_name=obj['computed_dataset_name'],
-                query=query,
-                aggregations=obj.get('aggregations', []),
-                name=obj['name'],
-                dimensions=obj['group_fields'],
-                tags=obj.get('tags', [])
-            ))
+            indicators.append(
+                Indicator(
+                    id=obj["indicator_id"],
+                    dataset_id=obj["computed_dataset_id"],
+                    dataset_name=obj["computed_dataset_name"],
+                    query=query,
+                    aggregations=obj.get("aggregations", []),
+                    name=obj["name"],
+                    dimensions=obj["group_fields"],
+                    tags=obj.get("tags", []),
+                )
+            )
         return indicators
     except requests.exceptions.HTTPError as errh:
         logging.error(f"Http Error: {errh}")
@@ -438,6 +489,7 @@ def get_indicators(datasets: List[Dataset] = [], tags: List[str] = [], fields: L
         logging.error(f"Something went wrong: {err}")
         sys.exit(1)
 
+
 def get_indicator(id: int) -> Indicator:
     """
     Gets the indicator corresponding to the provided id.
@@ -448,25 +500,27 @@ def get_indicator(id: int) -> Indicator:
     Returns:
         Indicator: The indicator corresponding to the provided id.
     """
-    params = {'indicator_id': id}
+    params = {"indicator_id": id}
     try:
-        r = s.get(f'{LARIAT_PUBLIC_API_ENDPOINT}/indicator', params=params)
+        r = s.get(f"{LARIAT_PUBLIC_API_ENDPOINT}/indicator", params=params)
         r.raise_for_status()
-        obj = r.json()['indicator']
-        query = f'SELECT {obj["calculation"]} AS value FROM {obj["computed_dataset_name"]}'
-        if obj['filters']:
+        obj = r.json()["indicator"]
+        query = (
+            f'SELECT {obj["calculation"]} AS value FROM {obj["computed_dataset_name"]}'
+        )
+        if obj["filters"]:
             query += f' WHERE {obj["filters"]}'
         if obj["group_fields"]:
             query += f' GROUP BY {obj["group_fields"]}'
         return Indicator(
-                id=obj['indicator_id'],
-                dataset_id=obj['computed_dataset_id'],
-                dataset_name=obj['computed_dataset_name'],
-                query=query,
-                aggregations=obj.get('aggregations', []),
-                name=obj['name'],
-                dimensions=obj['group_fields'],
-                tags=obj.get('tags', [])
+            id=obj["indicator_id"],
+            dataset_id=obj["computed_dataset_id"],
+            dataset_name=obj["computed_dataset_name"],
+            query=query,
+            aggregations=obj.get("aggregations", []),
+            name=obj["name"],
+            dimensions=obj["group_fields"],
+            tags=obj.get("tags", []),
         )
     except requests.exceptions.HTTPError as errh:
         logging.error(f"Http Error: {errh}")
@@ -478,6 +532,7 @@ def get_indicator(id: int) -> Indicator:
         logging.error(f"Something went wrong: {err}")
         sys.exit(1)
 
+
 def query(
     indicator: Indicator,
     from_ts: datetime.datetime,
@@ -485,8 +540,8 @@ def query(
     group_by: List[str] = [],
     aggregate: str = None,
     query_filter: Filter = None,
-    output_format: str = 'json'
-    ) -> MetricRecordList:
+    output_format: str = "json",
+) -> MetricRecordList:
     """
     Queries a provided indicator for its metric data,.
 
@@ -502,20 +557,13 @@ def query(
     Returns:
         MetricRecordList: An object that contains the list of records output by the query.
     """
-    data_filter = {
-        'operator': 'or',
-        'filters': []
-    }
+    data_filter = {"operator": "or", "filters": []}
     if group_by:
-        data_filter['group_by_clauses'] = group_by
+        data_filter["group_by_clauses"] = group_by
     if query_filter:
-        data_filter['operator'] = query_filter.operator
-        data_filter['filters'] = [
-            {
-                "field": clause.field,
-                "operator": clause.operator,
-                "value": clause.value
-            }
+        data_filter["operator"] = query_filter.operator
+        data_filter["filters"] = [
+            {"field": clause.field, "operator": clause.operator, "value": clause.value}
             for clause in query_filter.clauses
         ]
     data = {
@@ -523,18 +571,18 @@ def query(
         "filter": data_filter,
         "time_range": {
             "from_ts": int(from_ts.timestamp() * 1000),
-            "to_ts": int(to_ts.timestamp() * 1000)
+            "to_ts": int(to_ts.timestamp() * 1000),
         },
     }
     if aggregate:
-        data['aggregation'] = aggregate
+        data["aggregation"] = aggregate
 
     try:
-        r = s.get(f'{LARIAT_PUBLIC_API_ENDPOINT}/query-metrics', data=json.dumps(data))
+        r = s.get(f"{LARIAT_PUBLIC_API_ENDPOINT}/query-metrics", data=json.dumps(data))
         r.raise_for_status()
-        records = r.json()['records']
+        records = r.json()["records"]
 
-        return MetricRecordList(group_by, r.json()['records'])
+        return MetricRecordList(group_by, r.json()["records"])
     except requests.exceptions.HTTPError as errh:
         logging.error(f"Http Error: {errh}")
     except requests.exceptions.ConnectionError as errc:

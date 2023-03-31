@@ -15,5 +15,6 @@ from .lariat_client import (
     get_raw_datasets,
     get_indicators,
     get_indicator,
-    query
+    s,
+    query,
 )
