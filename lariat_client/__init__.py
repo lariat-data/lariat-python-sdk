@@ -7,6 +7,7 @@ from .lariat_client import (
     FilterClause,
     Filter,
     Indicator,
+    LARIAT_PUBLIC_API_ENDPOINT,
     MetricRecord,
     MetricRecordList,
     RawDataset,

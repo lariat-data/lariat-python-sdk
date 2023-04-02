@@ -61,7 +61,7 @@ group_by = ["country"]
 filter_clause = FilterClause(field="country", operator="in", values=["US", "UK"])
 query_filter = Filter(clauses=[filter_clause], operator="and")
 
-results = query(indicator, from_ts, to_ts, group_by, query_filter=query_filter)
+results = query(indicator["id"], from_ts, to_ts, group_by, query_filter=query_filter)
 
 # Convert results to a DataFrame
 results_df = results.to_df()

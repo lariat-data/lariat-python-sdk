@@ -461,7 +461,7 @@ def get_indicators(
         r.raise_for_status()
         indicators = []
         for obj in r.json()["indicators"]:
-            query = f'SELECT {obj["calculation"]} AS value FROM {obj["computed_dataset_name"]}'
+            query = f'SELECT {obj["calculation"]} AS value FROM "{obj["computed_dataset_name"]}"'
             if obj["filters"]:
                 query += f' WHERE {obj["filters"]}'
             if obj["group_fields"]:
@@ -505,9 +505,7 @@ def get_indicator(id: int) -> Indicator:
         r = s.get(f"{LARIAT_PUBLIC_API_ENDPOINT}/indicator", params=params)
         r.raise_for_status()
         obj = r.json()["indicator"]
-        query = (
-            f'SELECT {obj["calculation"]} AS value FROM {obj["computed_dataset_name"]}'
-        )
+        query = f'SELECT {obj["calculation"]} AS value FROM "{obj["computed_dataset_name"]}"'
         if obj["filters"]:
             query += f' WHERE {obj["filters"]}'
         if obj["group_fields"]:
@@ -534,7 +532,7 @@ def get_indicator(id: int) -> Indicator:
 
 
 def query(
-    indicator: Indicator,
+    indicator_id: int,
     from_ts: datetime.datetime,
     to_ts: datetime.datetime = datetime.datetime.now(),
     group_by: List[str] = [],
@@ -546,7 +544,7 @@ def query(
     Queries a provided indicator for its metric data,.
 
     Args:
-        indicator (indicator): Indicator to query.
+        indicator (indicator_id): Indicator id to query.
         from_ts (datetime.datetime): The start time for the indicator evaluation.
         to_ts (datetime.datetime): The end time for the indicator evaluation.
         group_by (list): A list of strings to group the metrics data by.
@@ -563,11 +561,11 @@ def query(
     if query_filter:
         data_filter["operator"] = query_filter.operator
         data_filter["filters"] = [
-            {"field": clause.field, "operator": clause.operator, "value": clause.value}
+            {"field": clause.field, "operator": clause.operator, "value": clause.values}
             for clause in query_filter.clauses
         ]
     data = {
-        "indicator_id": indicator.id,
+        "indicator_id": indicator_id,
         "filter": data_filter,
         "time_range": {
             "from_ts": int(from_ts.timestamp() * 1000),
