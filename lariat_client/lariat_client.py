@@ -3,25 +3,31 @@ A Python module to interact with Lariat API and perform various operations
 like querying indicators, fetching datasets, etc.
 """
 
-import requests
 import csv
-import os
 import datetime
-import logging
+from dotenv import load_dotenv
 import json
-from flatten_json import flatten
-import pandas as pd
+import logging
+import os
 from typing import List, Dict, Any, Union
 
+from flatten_json import flatten
+import pandas as pd
+import requests
+
 LARIAT_PUBLIC_API_ENDPOINT = "http://localhost:8002/public-api"
+
+load_dotenv()
+api_key = os.getenv("LARIAT_API_KEY")
+application_key = os.getenv("LARIAT_APPLICATION_KEY")
 
 logger = logging.getLogger(__name__)
 
 s = requests.Session()
 s.headers.update(
     {
-        "X-Lariat-Application-Key": os.environ.get("LARIAT_API_KEY"),
-        "X-Lariat-Api-Key": os.environ.get("LARIAT_APPLICATION_KEY"),
+        "X-Lariat-Application-Key": api_key,
+        "X-Lariat-Api-Key": application_key,
     }
 )
 

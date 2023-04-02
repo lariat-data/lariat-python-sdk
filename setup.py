@@ -9,6 +9,7 @@ setup(
     url="https://github.com/lariat-data/lariat-public-api/",
     packages=find_packages(),
     install_requires=[
+        "python-dotenv",
         "requests",
         "pandas",
         "flatten-json",
