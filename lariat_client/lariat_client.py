@@ -10,13 +10,12 @@ import json
 import logging
 import os
 from typing import List, Dict, Any, Union
-
+import sys
 from flatten_json import flatten
 import pandas as pd
 import requests
 
-LARIAT_PUBLIC_API_ENDPOINT = "http://localhost:8002/public-api"
-
+LARIAT_PUBLIC_API_ENDPOINT = "http://api.lariatdata.com/v1"
 load_dotenv()
 api_key = os.getenv("LARIAT_API_KEY")
 application_key = os.getenv("LARIAT_APPLICATION_KEY")
@@ -286,11 +285,14 @@ class MetricRecordList:
 
     def __init__(self, group_by_fields: List[str], records):
         self.group_by_fields = group_by_fields
-        self.records = [MetricRecord(**record) for record in records]
+        if records:
+            self.records = [MetricRecord(**record) for record in records]
+        else:
+            self.records = []
         self.index = 0
 
     def __repr__(self):
-        return json.dumps(self.__dict__)
+        return json.dumps(self.__dict__, default=lambda x: x.__dict__)
 
     def __iter__(self):
         return self
@@ -541,7 +543,7 @@ def query(
     indicator_id: int,
     from_ts: datetime.datetime,
     to_ts: datetime.datetime = datetime.datetime.now(),
-    group_by: List[str] = [],
+    group_by: List[str] = None,
     aggregate: str = None,
     query_filter: Filter = None,
     output_format: str = "json",
@@ -564,6 +566,8 @@ def query(
     data_filter = {"operator": "or", "filters": []}
     if group_by:
         data_filter["group_by_clauses"] = group_by
+    else:
+        group_by = []
     if query_filter:
         data_filter["operator"] = query_filter.operator
         data_filter["filters"] = [
@@ -580,13 +584,11 @@ def query(
     }
     if aggregate:
         data["aggregation"] = aggregate
-
     try:
-        r = s.get(f"{LARIAT_PUBLIC_API_ENDPOINT}/query-metrics", data=json.dumps(data))
+        r = s.get(url=f"{LARIAT_PUBLIC_API_ENDPOINT}/query-metrics", json=data)
         r.raise_for_status()
         records = r.json()["records"]
-
-        return MetricRecordList(group_by, r.json()["records"])
+        return MetricRecordList(group_by, records)
     except requests.exceptions.HTTPError as errh:
         logging.error(f"Http Error: {errh}")
     except requests.exceptions.ConnectionError as errc:
