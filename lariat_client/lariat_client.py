@@ -169,7 +169,7 @@ class Dataset:
         name: str,
         id: int,
         query: str,
-        schema: json,
+        schema: Dict,
     ):
         self.data_source = data_source
         self.source_id = source_id
@@ -181,7 +181,7 @@ class Dataset:
     def __repr__(self):
         return json.dumps(self.__dict__)
 
-    def get_schema(self) -> json:
+    def get_schema(self) -> Dict:
         """
         Gets the schema for the dataset.
 
@@ -277,6 +277,9 @@ class MetricRecord:
 
 class MetricRecordList:
     """A class representing a collection of metric records.
+
+    A MetricRecordList is printed out as a json string by default. It can be converted to a pandas dataframe
+    via the to_df() function and can be written out as a csv via the to_csv() function.
 
     Attributes:
         group_by_fields (list): The epoch timestamp associated with the indicator's evaluation.
@@ -542,11 +545,10 @@ def get_indicator(id: int) -> Indicator:
 def query(
     indicator_id: int,
     from_ts: datetime.datetime,
-    to_ts: datetime.datetime = datetime.datetime.now(),
+    to_ts: datetime.datetime = None,
     group_by: List[str] = None,
     aggregate: str = None,
     query_filter: Filter = None,
-    output_format: str = "json",
 ) -> MetricRecordList:
     """
     Queries a provided indicator for its metric data,.
@@ -558,11 +560,12 @@ def query(
         group_by (list): A list of strings to group the metrics data by.
         aggregate (str): An optional aggregation function to apply to the metric.
         query_filter (filter): A filter function to apply to the metric.
-        output_format (str): The format to output the query results as.
 
     Returns:
         MetricRecordList: An object that contains the list of records output by the query.
     """
+    if to_ts is None:
+        to_ts = datetime.datetime.now()
     data_filter = {"operator": "or", "filters": []}
     if group_by:
         data_filter["group_by_clauses"] = group_by

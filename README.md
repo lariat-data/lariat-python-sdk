@@ -1,4 +1,4 @@
-# Lariat Python Client
+# Lariat Python SDK
 
 A Python module to interact with Lariat API and perform various operations like querying indicators, fetching datasets, etc.
 
@@ -7,7 +7,7 @@ A Python module to interact with Lariat API and perform various operations like 
 To install the package, run the following command:
 
 ```bash
-pip install git+https://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@github.com/lariat-data/lariat-public-api.git@develop#egg=lariat_public_api
+pip install lariat_python_sdk
 ```
 
 ## Usage

@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="lariat_public_api",
+    name="lariat_python_sdk",
     version="0.1.0",
-    description="A Python module to interact with Lariat API and perform various operations",
+    description="A Python module to interact with Lariat API to access data quality metrics and diagnostics",
     author="Lariat Team",
     author_email="info@lariatdata.com",
-    url="https://github.com/lariat-data/lariat-public-api/",
+    url="https://github.com/lariat-data/lariat-python-sdk/",
     packages=find_packages(),
     install_requires=[
         "python-dotenv",
