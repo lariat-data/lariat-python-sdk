@@ -111,8 +111,7 @@ class Indicator:
                 If not provided, all dimensions will be fetched.
 
         Returns:
-            Dict[str, List[str]]: A dictionary with dimension names as keys and lists of
-                unique values as values.
+            Dict[str, List[str]]: A dictionary with dimension names as keys and lists of unique values as values.
         """
         try:
             r = s.get(
@@ -215,7 +214,7 @@ class FilterClause:
 
     Attributes:
         field (str): The field to filter on.
-        operator (str): The operator to apply to the filter values. (in, eq, not_in, neq, etc.)
+        operator (str): The operator to apply to the filter values. Supported operators: [in, not_in, eq, neq]
         values (list or str): A string or list of values to filter on.
     """
 
@@ -233,7 +232,7 @@ class Filter:
 
     Attributes:
         clauses (list): A list of filter clauses to apply when querying metrics.
-        operator (str): The operator to apply to the filter clauses. (AND, OR, etc.)
+        operator (str): The operator to apply to the filter clauses. The options for this are [any, all]. The default operator is 'all'. 'any' corresponds to an "OR"ing of the clauses, and 'all' corresponds to an "AND"ing of the clauses
     """
 
     def __init__(self, clauses: List[FilterClause], operator: str):
@@ -312,8 +311,7 @@ class MetricRecordList:
         Converts the MetricRecord list into a pandas dataframe.
 
         Returns:
-            Pandas DataFrame: A Dataframe consisting of the metric records
-                returned by an indicator query.
+            Pandas DataFrame: A Dataframe consisting of the metric records returned by an indicator query.
         """
         return pd.DataFrame.from_records([record.to_dict() for record in self.records])
 
@@ -341,8 +339,7 @@ def get_raw_datasets(dataset_ids: List[int]) -> List[RawDataset]:
         dataset_ids (list): A list of dataset ids to filter on.
 
     Returns:
-        List[RawDataset]: A list of raw datasets that the provided dataset_ids
-            are created from.
+        List[RawDataset]: A list of raw datasets that the provided dataset_ids are created from.
     """
     try:
         r = s.get(
