@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 s = requests.Session()
 s.headers.update(
     {
-        "X-Lariat-Application-Key": api_key,
-        "X-Lariat-Api-Key": application_key,
+        "X-Lariat-Application-Key": application_key,
+        "X-Lariat-Api-Key": api_key,
     }
 )
 
@@ -330,6 +330,94 @@ class MetricRecordList:
                 vals = record.to_dict()
                 writer.writerow([vals[field] for field in output_array])
 
+class RawQuery:
+    """A class representing a RawQuery to the Lariat metrics store.
+
+    A RawQuery may be sent to the API via `raw_query.send()` to retrive a `MetricRecordList`
+    """
+    def __init__(self,
+            indicator_id: int,
+            from_ts: datetime.datetime,
+            to_ts: datetime.datetime = None,
+            group_by: List[str] = None,
+            aggregate: str = None,
+            query_filter: Filter = None,
+            extra_args: Dict = None,
+        ):
+
+        self.indicator_id = indicator_id
+        self.from_ts = from_ts
+        self.to_ts = to_ts
+        self.group_by = group_by
+        self.aggregate = aggregate
+        self.query_filter = query_filter
+        self.metric_query_extra_args = extra_args or {}
+
+    def add_query_argument(self, key: str, value: str):
+        self.metric_query_extra_args.update({ key: value })
+
+    def to_json(self) -> Dict:
+        indicator_id = self.indicator_id
+        from_ts = self.from_ts
+        to_ts = self.to_ts
+        group_by = self.group_by
+        aggregate = self.aggregate
+        query_filter = self.query_filter
+
+        metric_query_extra_args = self.metric_query_extra_args
+
+        if to_ts is None:
+            to_ts = datetime.datetime.now()
+        data_filter = {"operator": "or", "filters": []}
+        if group_by:
+            data_filter["group_by_clauses"] = group_by
+        else:
+            group_by = []
+        if query_filter:
+            data_filter["operator"] = query_filter.operator
+            data_filter["filters"] = [
+                {"field": clause.field, "operator": clause.operator, "value": clause.values}
+                for clause in query_filter.clauses
+            ]
+        data = {
+            "indicator_id": indicator_id,
+            "metric_query": {
+                "time_range": {
+                    "from_ts": int(from_ts.timestamp() * 1000),
+                    "to_ts": int(to_ts.timestamp() * 1000),
+                },
+                "query": data_filter,
+            }
+        }
+
+        if metric_query_extra_args:
+            for key, value in metric_query_extra_args.items():
+                data["metric_query"][key] = value
+
+        if aggregate:
+            data["aggregation"] = aggregate
+
+        return data
+
+    def send(self) -> MetricRecordList:
+        try:
+            body = self.to_json()
+            group_by = self.group_by or []
+            r = s.get(url=f"{LARIAT_PUBLIC_API_ENDPOINT}/query-metrics-raw", json=body)
+            r.raise_for_status()
+            records = r.json()["records"]
+            return MetricRecordList(group_by, records)
+        except requests.exceptions.HTTPError as errh:
+            logging.error(f"Http Error: {errh}")
+        except requests.exceptions.ConnectionError as errc:
+            logging.error(f"Error Connecting: {errc}")
+        except requests.exceptions.Timeout as errt:
+            logging.error(f"Timeout Error: {errt}")
+        except requests.exceptions.RequestException as err:
+            logging.error(f"Something went wrong: {err}")
+
+
+
 
 def get_raw_datasets(dataset_ids: List[int]) -> List[RawDataset]:
     """
@@ -537,7 +625,6 @@ def get_indicator(id: int) -> Indicator:
     except requests.exceptions.RequestException as err:
         logging.error(f"Something went wrong: {err}")
         sys.exit(1)
-
 
 def query(
     indicator_id: int,
