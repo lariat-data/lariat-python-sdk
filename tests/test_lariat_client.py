@@ -229,37 +229,3 @@ def test_query(monkeypatch):
         assert result.records[1].evaluation_time == 1633017600
         assert result.records[1].value == 45.0
         assert result.records[1].dimensions == {"country": "US", "state": "CA"}
-
-def test_raw_query(monkeypatch):
-    with requests_mock.Mocker() as mocker:
-        mock_query_metrics(mocker)
-        indicator_id = 1
-        from_ts = datetime(2021, 9, 30)
-        to_ts = datetime(2021, 10, 1)
-        group_by = ["country", "state"]
-        aggregate = "sum"
-        query_filter = Filter(
-            clauses=[FilterClause(field="country", operator="eq", values="US")],
-            operator="AND",
-        )
-        output_format = "json"
-
-        result = query(
-            indicator_id,
-            from_ts,
-            to_ts,
-            group_by,
-            aggregate,
-            query_filter,
-            output_format,
-        )
-
-        assert isinstance(result, MetricRecordList)
-        assert len(result.records) == 2
-        assert result.records[0].evaluation_time == 1633014000
-        assert result.records[0].value == 42.0
-        assert result.records[0].dimensions == {"country": "US", "state": "CA"}
-        assert result.records[1].evaluation_time == 1633017600
-        assert result.records[1].value == 45.0
-        assert result.records[1].dimensions == {"country": "US", "state": "CA"}
-
