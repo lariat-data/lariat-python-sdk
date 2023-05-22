@@ -330,21 +330,23 @@ class MetricRecordList:
                 vals = record.to_dict()
                 writer.writerow([vals[field] for field in output_array])
 
+
 class RawQuery:
     """A class representing a RawQuery to the Lariat metrics store.
 
     A RawQuery may be sent to the API via `raw_query.send()` to retrive a `MetricRecordList`
     """
-    def __init__(self,
-            indicator_id: int,
-            from_ts: datetime.datetime,
-            to_ts: datetime.datetime = None,
-            group_by: List[str] = None,
-            aggregate: str = None,
-            query_filter: Filter = None,
-            extra_args: Dict = None,
-        ):
 
+    def __init__(
+        self,
+        indicator_id: int,
+        from_ts: datetime.datetime,
+        to_ts: datetime.datetime = None,
+        group_by: List[str] = None,
+        aggregate: str = None,
+        query_filter: Filter = None,
+        extra_args: Dict = None,
+    ):
         self.indicator_id = indicator_id
         self.from_ts = from_ts
         self.to_ts = to_ts
@@ -354,7 +356,7 @@ class RawQuery:
         self.metric_query_extra_args = extra_args or {}
 
     def add_query_argument(self, key: str, value: str):
-        self.metric_query_extra_args.update({ key: value })
+        self.metric_query_extra_args.update({key: value})
 
     def to_json(self) -> Dict:
         indicator_id = self.indicator_id
@@ -376,7 +378,11 @@ class RawQuery:
         if query_filter:
             data_filter["operator"] = query_filter.operator
             data_filter["filters"] = [
-                {"field": clause.field, "operator": clause.operator, "value": clause.values}
+                {
+                    "field": clause.field,
+                    "operator": clause.operator,
+                    "value": clause.values,
+                }
                 for clause in query_filter.clauses
             ]
         data = {
@@ -387,7 +393,7 @@ class RawQuery:
                     "to_ts": int(to_ts.timestamp() * 1000),
                 },
                 "query": data_filter,
-            }
+            },
         }
 
         if metric_query_extra_args:
@@ -415,8 +421,6 @@ class RawQuery:
             logging.error(f"Timeout Error: {errt}")
         except requests.exceptions.RequestException as err:
             logging.error(f"Something went wrong: {err}")
-
-
 
 
 def get_raw_datasets(dataset_ids: List[int]) -> List[RawDataset]:
@@ -625,6 +629,7 @@ def get_indicator(id: int) -> Indicator:
     except requests.exceptions.RequestException as err:
         logging.error(f"Something went wrong: {err}")
         sys.exit(1)
+
 
 def query(
     indicator_id: int,
