@@ -78,6 +78,7 @@ Use the RawQuery interface to add additional query arguments:
 *Note: Query arguments attached via the RawQuery interface are subject to changes in their backend interpretation. Use with caution*
 
 .. code:: python
+
     import lariat_client
     import datetime
 
