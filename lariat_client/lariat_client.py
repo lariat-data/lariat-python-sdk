@@ -690,3 +690,66 @@ def query(
     except requests.exceptions.RequestException as err:
         logging.error(f"Something went wrong: {err}")
         sys.exit(1)
+
+
+def query_streaming(
+    indicator_id: str,
+    from_ts: datetime.datetime,
+    to_ts: datetime.datetime = None,
+    group_by: List[str] = None,
+    aggregate: str = None,
+    query_filter: Filter = None,
+) -> MetricRecordList:
+    """
+    Queries a provided indicator for its metric data,.
+
+    Args:
+        indicator (indicator_id): Indicator id to query.
+        from_ts (datetime.datetime): The start time for the indicator evaluation.
+        to_ts (datetime.datetime): The end time for the indicator evaluation.
+        group_by (list): A list of strings to group the metrics data by.
+        aggregate (str): An optional aggregation function to apply to the metric.
+        query_filter (filter): A filter function to apply to the metric.
+
+    Returns:
+        MetricRecordList: An object that contains the list of records output by the query.
+    """
+    if to_ts is None:
+        to_ts = datetime.datetime.now()
+    data_filter = {"operator": "or", "filters": []}
+    if group_by:
+        data_filter["group_by_clauses"] = group_by
+    else:
+        group_by = []
+    if query_filter:
+        data_filter["operator"] = query_filter.operator
+        data_filter["filters"] = [
+            {"field": clause.field, "operator": clause.operator, "value": clause.values}
+            for clause in query_filter.clauses
+        ]
+    data = {
+        "indicator_id": indicator_id,
+        "filter": data_filter,
+        "time_range": {
+            "from_ts": int(from_ts.timestamp() * 1000),
+            "to_ts": int(to_ts.timestamp() * 1000),
+        },
+    }
+    if aggregate:
+        data["aggregation"] = aggregate
+    try:
+        r = s.get(
+            url=f"{LARIAT_PUBLIC_API_ENDPOINT}/streaming-query-metrics", json=data
+        )
+        r.raise_for_status()
+        records = r.json()["records"]
+        return MetricRecordList(group_by, records)
+    except requests.exceptions.HTTPError as errh:
+        logging.error(f"Http Error: {errh}")
+    except requests.exceptions.ConnectionError as errc:
+        logging.error(f"Error Connecting: {errc}")
+    except requests.exceptions.Timeout as errt:
+        logging.error(f"Timeout Error: {errt}")
+    except requests.exceptions.RequestException as err:
+        logging.error(f"Something went wrong: {err}")
+        sys.exit(1)
