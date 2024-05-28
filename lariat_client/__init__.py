@@ -18,5 +18,6 @@ from .lariat_client import (
     get_indicator,
     s,
     query,
+    query_streaming,
     RawQuery,
 )
