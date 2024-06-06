@@ -62,7 +62,10 @@ filter_clause = FilterClause(field="country", operator="in", values="US,UK")
 query_filter = Filter(clauses=[filter_clause], operator="and")
 
 results = query(indicator.id, from_ts, to_ts, group_by, query_filter=query_filter)
-
+# To specify an aggregate, you can pass in the aggregate parameter. Options include ["sum","avg","median","p75","p25","max","min","count","distinct"]
+# results = query(indicator.id, from_ts, to_ts, group_by=group_by, query_filter=query_filter,aggregate="sum")
+   
+   
 # Convert results to a DataFrame
 results_df = results.to_df()
 

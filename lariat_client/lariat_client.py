@@ -648,6 +648,7 @@ def query(
         to_ts (datetime.datetime): The end time for the indicator evaluation.
         group_by (list): A list of strings to group the metrics data by.
         aggregate (str): An optional aggregation function to apply to the metric.
+            Options for aggregate include ["sum","avg","median","p75","p25","max","min","count","distinct"]
         query_filter (filter): A filter function to apply to the metric.
 
     Returns:
@@ -709,6 +710,7 @@ def query_streaming(
         to_ts (datetime.datetime): The end time for the indicator evaluation.
         group_by (list): A list of strings to group the metrics data by.
         aggregate (str): An optional aggregation function to apply to the metric.
+            Options for aggregate include ["sum","avg","median","p75","p25","max","min","count","distinct"]
         query_filter (filter): A filter function to apply to the metric.
 
     Returns:
